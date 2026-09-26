@@ -1,10 +1,11 @@
-//go:build !goexperiment.simd
+//go:build goexperiment.simd
 
 package tensor
 
 import (
 	"fmt"
 	"reflect"
+	"simd"
 	"sync"
 	"unsafe"
 
@@ -186,8 +187,10 @@ func (a array) Zero() {
 	}
 	if !isParameterizedKind(a.t.Kind()) {
 		ba := a.byteSlice()
-		for i := range ba {
-			ba[i] = 0
+		_vcUint8s0 := simd.BroadcastUint8s(0)
+		for _i := 0; _i < len(ba); {
+			_n := _vcUint8s0.StorePart(ba[_i:])
+			_i += _n
 		}
 		return
 	}
@@ -396,8 +399,10 @@ func freeScalar(bs []byte) {
 	}
 
 	// zero out
-	for i := range bs {
-		bs[i] = 0
+	_vcUint8s1 := simd.BroadcastUint8s(0)
+	for _i := 0; _i < len(bs); {
+		_n := _vcUint8s1.StorePart(bs[_i:])
+		_i += _n
 	}
 
 	size := uintptr(len(bs))
